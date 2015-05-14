@@ -61,3 +61,12 @@
 @end
 
 extern NSString * const GeoJSONSerializationErrorDomain;
+
+
+/** Category to store custom geoJSON feature properties in any MKShape.
+ */
+@interface MKShape (GeoJSONSerialization)
+
+@property (nonatomic, readonly) NSDictionary *customFeatureProperties;
+
+@end

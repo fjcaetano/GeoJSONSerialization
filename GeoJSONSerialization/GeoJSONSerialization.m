@@ -20,7 +20,17 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+#import <objc/runtime.h>
+
 #import "GeoJSONSerialization.h"
+
+/** Category to store custom geoJSON feature properties in any MKShape.
+ */
+@interface MKShape (CustomFeatureProperties_Setter)
+
+@property (nonatomic, strong) NSDictionary *customFeatureProperties;
+
+@end
 
 #pragma mark - Geometry Primitives
 
@@ -65,6 +75,7 @@ static MKPointAnnotation * MKPointAnnotationFromGeoJSONPointFeature(NSDictionary
     NSDictionary *properties = [NSDictionary dictionaryWithDictionary:feature[@"properties"]];
     pointAnnotation.title = properties[@"title"];
     pointAnnotation.subtitle = properties[@"subtitle"];
+    pointAnnotation.customFeatureProperties = properties;
 
     return pointAnnotation;
 }
@@ -82,6 +93,7 @@ static MKPolyline * MKPolylineFromGeoJSONLineStringFeature(NSDictionary *feature
     NSDictionary *properties = [NSDictionary dictionaryWithDictionary:feature[@"properties"]];
     polyLine.title = properties[@"title"];
     polyLine.subtitle = properties[@"subtitle"];
+    polyLine.customFeatureProperties = properties;
 
     return polyLine;
 }
@@ -119,6 +131,7 @@ static MKPolygon * MKPolygonFromGeoJSONPolygonFeature(NSDictionary *feature) {
     NSDictionary *properties = [NSDictionary dictionaryWithDictionary:feature[@"properties"]];
     polygon.title = properties[@"title"];
     polygon.subtitle = properties[@"subtitle"];
+    polygon.customFeatureProperties = properties;
 
     return polygon;
 }
@@ -408,6 +421,23 @@ static NSDictionary * GeoJSONFeatureCollectionFromShapes(NSArray *shapes, NSArra
     NSParameterAssert(!arrayOfProperties || [shapes count] == [arrayOfProperties count]);
 
     return GeoJSONFeatureCollectionFromShapes(shapes, arrayOfProperties);
+}
+
+@end
+
+/** MKShape category implementation
+ */
+static void *_kCustomFeatureProperties = NULL;
+@implementation MKShape (GeoJSONSerialization)
+
+- (NSDictionary *)customFeatureProperties
+{
+    return objc_getAssociatedObject(self, _kCustomFeatureProperties);
+}
+
+- (void)setCustomFeatureProperties:(NSDictionary *)customFeatureProperties
+{
+    objc_setAssociatedObject(self, _kCustomFeatureProperties, customFeatureProperties, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 @end
